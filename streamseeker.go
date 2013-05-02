@@ -20,9 +20,9 @@ type CompressorSeekWrapper struct {
 
 func getCompressor(compression string, r io.Reader) (io.Reader, error) {
 	switch compression {
-	case "gz":
+	case "gz", ".gz":
 		return gzip.NewReader(r)
-	case "bz2":
+	case "bz2", ".bz2":
 		return bzip2.NewReader(r), nil
 	}
 	return r, nil

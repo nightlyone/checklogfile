@@ -42,10 +42,7 @@ func ProcessLog() (nagios.Status, error) {
 		return nagios.UNKNOWN, err
 	}
 	ext := filepath.Ext(opts.Logfile)
-	switch ext {
-	case "bz2", "bz":
-		fp = checklogfile.NewCompressorSeekWrapper(fp, ext)
-	}
+	fp = checklogfile.NewCompressorSeekWrapper(fp, ext)
 	offset := int64(0)
 	lf := checklogfile.NewLogFile(fp, offset)
 	defer lf.Close()
