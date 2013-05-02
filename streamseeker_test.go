@@ -41,7 +41,7 @@ func TestGzipSeeker(t *testing.T) {
 	var cw ReadSeekCloser
 	cw = NewCompressorSeekWrapper(fp, "gz")
 	if cw == nil {
-		t.Errorf("cannot open compressing seeker")
+		t.Fatal("cannot open compressing seeker")
 		return
 	}
 	// do a bit io 
@@ -72,7 +72,7 @@ func TestBzip2Seeker(t *testing.T) {
 	var cw ReadSeekCloser
 	cw = NewCompressorSeekWrapper(fp, "bz2")
 	if cw == nil {
-		t.Errorf("cannot open compressing seeker")
+		t.Fatal("cannot open compressing seeker")
 		return
 	}
 	// do a bit io 
@@ -90,5 +90,33 @@ func TestBzip2Seeker(t *testing.T) {
 		} else {
 			t.Logf("%d: ok, got %d", i, pos)
 		}
+	}
+}
+
+func BenchmarkGzipWrapper(b *testing.B) {
+	fp, err := os.Open("testdata/unattended-upgrades.log.gz")
+	if err != nil {
+		b.Fatal("testdata missing. Error: ", err)
+		return
+	}
+	// This also ensures we have the right interface
+	var cw ReadSeekCloser
+	cw = NewCompressorSeekWrapper(fp, "gz")
+	if cw == nil {
+		b.Fatal("cannot open compressing seeker")
+		return
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		b.StartTimer()
+		n, _ := io.Copy(ioutil.Discard, cw)
+		b.StopTimer()
+		if err != nil {
+			b.Fatal("invalid testdata: ", err)
+			return
+		}
+		b.SetBytes(n)
+		cw.Seek(0, 0)
 	}
 }
