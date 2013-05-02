@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/laziac/go-nagios/nagios"
 	"github.com/nightlyone/checklogfile"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,6 +25,17 @@ type Options struct {
 	UnknownPattern  []string `short:"u" long:"unknownpattern" description:"pattern meaning we don't know yet"`
 }
 
+// Try to read offsetfile
+func GetOffset() int64 {
+	offset := int64(0)
+	if b, err := ioutil.ReadFile(opts.OffsetFile); err == nil && len(b) > 0 {
+		buf := bytes.NewReader(b)
+		fmt.Fscan(buf, &offset)
+	}
+	return offset
+}
+
+// Try to process passed log file
 func ProcessLog() (nagios.Status, error) {
 	var fp checklogfile.ReadSeekCloser
 
@@ -32,9 +45,13 @@ func ProcessLog() (nagios.Status, error) {
 	}
 	ext := filepath.Ext(opts.Logfile)
 	fp = checklogfile.NewCompressorSeekWrapper(fp, ext)
-	offset := int64(0)
-	lf := checklogfile.NewLogFile(fp, offset)
+	lf := checklogfile.NewLogFile(fp, GetOffset())
 	defer lf.Close()
+	defer func() {
+		offset := lf.Offset()
+		s := fmt.Sprintf("%d", offset)
+		ioutil.WriteFile(opts.OffsetFile, []byte(s), 0600)
+	}()
 
 	if err := lf.AddPatterns(checklogfile.MonitorOk, opts.OkPattern); err != nil {
 		return nagios.UNKNOWN, err
