@@ -23,6 +23,7 @@ func TestUnattendedUpdate(t *testing.T) {
 		return
 	}
 	lf := NewLogFile(fp, 0)
+	defer lf.Close()
 	for level, pa := range patterns {
 		for _, p := range pa {
 			lf.AddPattern(MonitoringResult(level), p)

@@ -56,6 +56,7 @@ func TestCompressorSeeker(t *testing.T) {
 			t.Errorf("%s:cannot open compressing seeker", ext)
 			continue
 		}
+		defer cw.Close()
 
 		got_line := make([]byte, len(want_line))
 
