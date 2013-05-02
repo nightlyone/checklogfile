@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var opts = &Options{}
+
 type Options struct {
 	Verbose         bool     `short:"v" long:"verbose" description:"be verbose debug"`
 	Logfile         string   `short:"f" long:"logfile" required:"true" description:"parse this logfile"`
@@ -55,8 +57,6 @@ func ProcessLog() (nagios.Status, error) {
 	}
 	return nagios.Status(res), err
 }
-
-var opts = &Options{}
 
 func main() {
 	args, err := flags.Parse(opts)
