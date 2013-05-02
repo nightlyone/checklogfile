@@ -88,7 +88,7 @@ func (l *Logfile) Scan() (res MonitoringResult, counts [MonitorCount]int64, err 
 	var matched, read int64
 	res = MonitorUnknown
 	for line, err = l.buffer.ReadBytes('\n'); err == nil; line, err = l.buffer.ReadBytes('\n') {
-		for i := range counts {
+		for i := range l.patterns {
 			for _, pattern := range l.patterns[i] {
 				if pattern.Match(line) {
 					matched += 1
