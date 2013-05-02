@@ -21,19 +21,6 @@ type Options struct {
 	UnknownPattern  []string `short:"u" long:"unknownpattern" description:"pattern meaning we don't know yet"`
 }
 
-type NagiosError struct {
-	State nagios.Status
-	Msg   string
-	Err   error
-}
-
-func (ne *NagiosError) Error() string {
-	if ne.Err == nil {
-		return ne.Msg
-	}
-	return ne.Err.Error()
-}
-
 func ProcessLog() (nagios.Status, error) {
 	var fp checklogfile.ReadSeekCloser
 
@@ -83,7 +70,7 @@ func main() {
 	}
 	state, err := ProcessLog()
 	if err == nil {
-		nagios.Exit(state, "no errors or warnings")
+		nagios.Exit(state, "")
 	}
 	nagios.Exit(state, err.Error())
 }
