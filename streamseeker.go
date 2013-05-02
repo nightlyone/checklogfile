@@ -43,6 +43,13 @@ func NewCompressorSeekWrapper(backend ReadSeekCloser, compression string) *Compr
 
 // We can skip IO and rewind in streams and thus support the io.Seeker interface
 func (c *CompressorSeekWrapper) Seek(offset int64, whence int) (ret int64, err error) {
+	// shortcut if compressors suddenly learn to seek or we have no compressor in between
+	if seeker, ok := c.compressor.(io.Seeker); ok {
+		ret, err := seeker.Seek(offset, whence)
+		c.offset = ret
+		return ret, err
+	}
+
 	var newoffset int64
 	switch whence {
 	case 0:
