@@ -98,6 +98,11 @@ func (c *CompressorSeekWrapper) Read(p []byte) (n int, err error) {
 
 // Satisfy io.Closer interface
 func (c *CompressorSeekWrapper) Close() error {
+	if c.f == c.compressor {
+		if closer, ok := c.compressor.(io.Closer); ok {
+			return closer.Close()
+		}
+	}
 	if closer, ok := c.compressor.(io.Closer); ok {
 		if err := closer.Close(); err != nil {
 			return err
