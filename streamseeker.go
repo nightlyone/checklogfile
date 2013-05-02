@@ -30,23 +30,15 @@ func getCompressor(compression string, r io.Reader) (io.Reader, error) {
 
 // wrapper around compressors that supports streams
 func NewCompressorSeekWrapper(backend ReadSeekCloser, compression string) *CompressorSeekWrapper {
-	switch compression {
-	case "gz":
-		compressor, _ := gzip.NewReader(backend)
-		return &CompressorSeekWrapper{
-			compressor:  compressor,
-			f:           backend,
-			compression: compression,
-		}
-	case "bz2":
-		compressor := bzip2.NewReader(backend)
-		return &CompressorSeekWrapper{
-			compressor:  compressor,
-			f:           backend,
-			compression: compression,
-		}
+	compressor, err := getCompressor(compression, backend)
+	if err != nil {
+		return nil
 	}
-	return nil
+	return &CompressorSeekWrapper{
+		compressor:  compressor,
+		f:           backend,
+		compression: compression,
+	}
 }
 
 // We can skip IO and rewind in streams and thus support the io.Seeker interface
