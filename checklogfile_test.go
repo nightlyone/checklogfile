@@ -29,13 +29,13 @@ func TestUnattendedUpdate(t *testing.T) {
 		}
 	}
 	res, counts, err := lf.Scan()
-	t.Log("Parsing result: counts = %+v, offset = %d", counts, lf.Offset())
+	t.Logf("Parsing result: counts = %+v, offset = %d", counts, lf.Offset())
 	if err != nil {
 		t.Errorf("unexpected error %v", err)
 	} else if res != MonitorCritical {
-		t.Errorf("got res = %s, expected %s", res, MonitorCritical)
+		t.Errorf("got res = %s, want res = %s", res, MonitorCritical)
 	} else {
-		t.Logf("res = %v")
+		t.Logf("got res = %v, want res = %v", res, MonitorCritical)
 	}
 }
 
@@ -73,4 +73,3 @@ func (closableReadSeeker) Close() error { return nil }
 func NewReadSeeker(b []byte) *closableReadSeeker {
 	return &closableReadSeeker{Reader: bytes.NewReader(b)}
 }
-

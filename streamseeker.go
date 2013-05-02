@@ -77,7 +77,7 @@ func (c *CompressorSeekWrapper) Seek(offset int64, whence int) (ret int64, err e
 		if _, err := c.f.Seek(0, 0); err != nil {
 			return 0, err
 		}
-		if comp, err := getCompressor(c.compression,c.f); err != nil {
+		if comp, err := getCompressor(c.compression, c.f); err != nil {
 			return 0, err
 		} else {
 			c.compressor = comp
@@ -86,7 +86,7 @@ func (c *CompressorSeekWrapper) Seek(offset int64, whence int) (ret int64, err e
 		}
 	}
 	// seek forward means read and skip
-	_, err = io.CopyN(ioutil.Discard, c, newoffset - c.offset)
+	_, err = io.CopyN(ioutil.Discard, c, newoffset-c.offset)
 	return c.offset, err
 }
 
