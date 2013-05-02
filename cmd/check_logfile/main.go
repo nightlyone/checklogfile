@@ -11,20 +11,20 @@ import (
 )
 
 type Options struct {
-	Verbose bool `short:"v" long:"verbose" description:"be verbose debug"`
-	Logfile string `short:"f" long:"logfile" required:"true" description:"parse this logfile"`
-	Tag string `short:"t" long:"tag" default:"default" description:"tag to use for reporting"`
-	OffsetFile string `short:"o" long:"offsetfile" description:"file describing the offset we restart scaning for events"`
-	OkPattern []string `short:"k" long:"okpattern" description:"pattern for event clearing a previous event"`
+	Verbose         bool     `short:"v" long:"verbose" description:"be verbose debug"`
+	Logfile         string   `short:"f" long:"logfile" required:"true" description:"parse this logfile"`
+	Tag             string   `short:"t" long:"tag" default:"default" description:"tag to use for reporting"`
+	OffsetFile      string   `short:"o" long:"offsetfile" description:"file describing the offset we restart scaning for events"`
+	OkPattern       []string `short:"k" long:"okpattern" description:"pattern for event clearing a previous event"`
 	CriticalPattern []string `short:"c" long:"criticalpattern" description:"pattern for critical event"`
-	WarningPattern []string `short:"w" long:"warningpattern" description:"pattern for warning event"`
-	UnknownPattern []string `short:"u" long:"unknownpattern" description:"pattern meaning we don't know yet"`
+	WarningPattern  []string `short:"w" long:"warningpattern" description:"pattern for warning event"`
+	UnknownPattern  []string `short:"u" long:"unknownpattern" description:"pattern meaning we don't know yet"`
 }
 
 type NagiosError struct {
 	State nagios.Status
-	Msg string
-	Err error
+	Msg   string
+	Err   error
 }
 
 func (ne *NagiosError) Error() string {
@@ -67,12 +67,13 @@ func ProcessLog() (nagios.Status, error) {
 	for i, v := range count {
 		lines += v
 		level := strings.ToLower(nagios.Status(i).String())
-		nagios.Perfdata(opts.Tag + "-" + level, float64(v), "", nil, nil)
+		nagios.Perfdata(opts.Tag+"-"+level, float64(v), "", nil, nil)
 	}
 	return nagios.Status(res), err
 }
 
 var opts = &Options{}
+
 func main() {
 	args, err := flags.Parse(opts)
 
