@@ -1,0 +1,10 @@
+2013-02-20 11:05:29,244 INFO Allowed origins are: ['origin=Debian,archive=stable,label=Debian-Security', 'site=prod-unstaged.debmirror.prod.aws.jimdo-server.com']
+2013-02-20 11:05:31,632 INFO No packages found that can be upgraded unattended
+2013-02-21 11:21:07,623 INFO Initial blacklisted packages: 
+2013-02-21 11:21:07,623 INFO Starting unattended upgrades script
+2013-02-21 11:21:07,623 INFO Allowed origins are: ['origin=Debian,archive=stable,label=Debian-Security', 'site=prod-unstaged.debmirror.prod.aws.jimdo-server.com']
+2013-02-21 11:21:24,558 INFO Packages that are upgraded: apache2-utils gnupg gpgv libcgi-fast-perl libnss3-1d libperl5.10 libwbclient0 libxenstore3.0 libxml2 libxml2-utils mysql-common nagios3 nagios3-cgi nagios3-common nagios3-core nagios3-doc perl perl-base perl-modules samba-common smbclient
+2013-02-21 11:21:24,559 INFO Writing dpkg log to '/var/log/unattended-upgrades/unattended-upgrades-dpkg_2013-02-21_11:21:24.558966.log'
+2013-02-21 11:23:55,417 ERROR Installing the upgrades failed!
+2013-02-21 11:23:55,417 ERROR error message: 'installArchives() failed'
+2013-02-21 11:23:55,417 ERROR dpkg returned a error! See '/var/log/unattended-upgrades/unattended-upgrades-dpkg_2013-02-21_11:21:24.558966.log' for details
