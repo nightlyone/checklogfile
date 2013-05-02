@@ -31,64 +31,56 @@ var positions = [...]struct {
 	},
 }
 
-func TestGzipSeeker(t *testing.T) {
-	fp, err := os.Open("testdata/unattended-upgrades.log.gz")
-	if err != nil {
-		t.Fatal("testdata missing. Error: ", err)
-		return
-	}
-	// This also ensures we have the right interface
-	var cw ReadSeekCloser
-	cw = NewCompressorSeekWrapper(fp, "gz")
-	if cw == nil {
-		t.Fatal("cannot open compressing seeker")
-		return
-	}
-	// do a bit io 
-	_, err = io.CopyN(ioutil.Discard, cw, 20)
-	if err != nil {
-		t.Fatal("testdata too small (need at least 100 bytes) Error ", err)
-		return
-	}
-	for i, p := range positions {
-		t.Logf("%d:%s", i, p.description)
-		if pos, err := cw.Seek(p.offset, p.whence); err != nil {
-			t.Errorf("%d:err: %s", i, err)
-		} else if pos != p.want {
-			t.Errorf("%d: got %d, want %d", i, pos, p.want)
-		} else {
-			t.Logf("%d: ok, got %d", i, pos)
-		}
-	}
+var files = map[string]string{
+	"bz2": "testdata/unattended-upgrades.log.bz2",
+	"gz":  "testdata/unattended-upgrades.log.gz",
+	"":    "testdata/unattended-upgrades.log",
 }
 
-func TestBzip2Seeker(t *testing.T) {
-	fp, err := os.Open("testdata/unattended-upgrades.log.bz2")
-	if err != nil {
-		t.Fatal("testdata missing. Error: ", err)
+func TestCompressorSeeker(t *testing.T) {
+	want_line := []byte("2013-02-20 11:05:29,")
+	if n := len(want_line); n != 20 {
+		t.Fatalf("testsetup broken. want_line should be %d bytes, got %d bytes", 20, n)
 		return
 	}
-	// This also ensures we have the right interface
-	var cw ReadSeekCloser
-	cw = NewCompressorSeekWrapper(fp, "bz2")
-	if cw == nil {
-		t.Fatal("cannot open compressing seeker")
-		return
-	}
-	// do a bit io 
-	_, err = io.CopyN(ioutil.Discard, cw, 20)
-	if err != nil {
-		t.Fatal("testdata too small (need at least 100 bytes) Error ", err)
-		return
-	}
-	for i, p := range positions {
-		t.Logf("%d:%s", i, p.description)
-		if pos, err := cw.Seek(p.offset, p.whence); err != nil {
-			t.Errorf("%d:err: %s", i, err)
-		} else if pos != p.want {
-			t.Errorf("%d: got %d, want %d", i, pos, p.want)
-		} else {
-			t.Logf("%d: ok, got %d", i, pos)
+	for ext, f := range files {
+		fp, err := os.Open(f)
+		if err != nil {
+			t.Fatal("testdata missing. Error: ", err)
+			return
+		}
+		// This also ensures we have the right interface
+		var cw ReadSeekCloser
+		cw = NewCompressorSeekWrapper(fp, ext)
+		if cw == nil {
+			t.Errorf("%s:cannot open compressing seeker", ext)
+			continue
+		}
+
+		got_line := make([]byte, len(want_line))
+
+		n, err := cw.Read(got_line)
+		if err != nil {
+			t.Error(ext, ": testdata too small (need at least 200 bytes) Error ", err)
+			continue
+		} else if n < 20 {
+			t.Errorf("%s: testdata too small (need at least 200 bytes, got %v) Error %v", ext, n, err)
+			continue
+		}
+
+		if string(want_line) != string(got_line) {
+			t.Errorf("%s: decompressor b0rken: want %s, got %s", ext, want_line, got_line)
+			continue
+		}
+		for i, p := range positions {
+			t.Logf("%d:%s", i, p.description)
+			if pos, err := cw.Seek(p.offset, p.whence); err != nil {
+				t.Errorf("%s:%d:err: %s", ext, i, err)
+			} else if pos != p.want {
+				t.Errorf("%s:%d: got %d, want %d", ext, i, pos, p.want)
+			} else {
+				t.Logf("%s:%d: ok, got %d", ext, i, pos)
+			}
 		}
 	}
 }
