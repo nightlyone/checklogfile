@@ -21,7 +21,7 @@ const (
 	MonitorWarning
 	MonitorCritical
 	MonitorUnknown // Cannot determine state
-	MonitorCount // Upper bound for arrays based on levels
+	MonitorCount   // Upper bound for arrays based on levels
 )
 
 var monitoringResults = [MonitorCount]string{
@@ -73,6 +73,18 @@ func (l *Logfile) AddPattern(level MonitoringResult, pattern string) error {
 		return err
 	}
 	l.patterns[level] = append(l.patterns[level], re)
+	return nil
+}
+
+// Add list of a regexp patterns to trigger monitoring alert level.
+// Logfile lines are matched in order of apperance,
+// but which patterns are applied first is not specified.
+func (l *Logfile) AddPatterns(level MonitoringResult, patterns []string) error {
+	for _, p := range patterns {
+		if err := l.AddPattern(level, p); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
