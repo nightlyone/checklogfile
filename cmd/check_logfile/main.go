@@ -74,7 +74,7 @@ func ProcessLog() (nagios.Status, error) {
 }
 
 func main() {
-	args, err := flags.Parse(&opts)
+	_, err := flags.Parse(&opts)
 
 	if err != nil {
 		// --help is not an error
@@ -85,9 +85,6 @@ func main() {
 		}
 	}
 
-	for _, a := range args {
-		fmt.Println(a)
-	}
 	state, err := ProcessLog()
 	if err == nil {
 		nagios.Exit(state, "")
