@@ -32,7 +32,7 @@ override_dh_auto_build:
 	go build $(GO_COMMANDS)
 
 override_dh_install:
-	dh_install --sourcedir=$(GOPATH)/bin $(BINARIES) $(DESTDIR)/usr/bin
+	dh_install --sourcedir=$(GOPATH)/bin $(BINARIES) $(DESTDIR)/usr/lib/nagios/plugins
 
 # These are not needed for go programs
 override_dh_pysupport override_dh_pysupport2 override_dh_perl:
