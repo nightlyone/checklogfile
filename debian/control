@@ -11,4 +11,6 @@ Vcs-Git: git://github.com/nightlyone/checklogfile.git
 Package: checklogfile
 Architecture: amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}, nagios-plugins-common
+Replaces: check-logfiles
+Conflicts: check-logfiles
 Description: Nagios compatible logfile checker based on reguluar expressions
