@@ -12,9 +12,7 @@ import (
 	"strings"
 )
 
-var opts = &Options{}
-
-type Options struct {
+var opts struct {
 	Verbose         bool     `short:"v" long:"verbose" description:"be verbose debug"`
 	Logfile         string   `short:"f" long:"logfile" required:"true" description:"parse this logfile"`
 	Tag             string   `short:"t" long:"tag" default:"default" description:"tag to use for reporting"`
@@ -76,10 +74,15 @@ func ProcessLog() (nagios.Status, error) {
 }
 
 func main() {
-	args, err := flags.Parse(opts)
+	args, err := flags.Parse(&opts)
 
 	if err != nil {
-		nagios.Exit(nagios.UNKNOWN, err.Error())
+		// --help is not an error
+		if e, ok := err.(*flags.Error); ok && e.Type == flags.ErrHelp {
+			return
+		} else {
+			nagios.Exit(nagios.UNKNOWN, err.Error())
+		}
 	}
 
 	for _, a := range args {
