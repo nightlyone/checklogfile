@@ -16,27 +16,34 @@ var patterns = [MonitorCount][]string{
 	MonitorOk: []string{`^\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2}\,\d{3}\ INFO No packages found that can be upgraded unattended\$`},
 }
 
+var testfiles = []string{
+	"unattended-upgrades.log",
+	"unattended-upgrades.log.1",
+}
+
 func TestUnattendedUpdate(t *testing.T) {
-	fp, err := os.Open("testdata/unattended-upgrades.log")
-	if err != nil {
-		t.Fatal("testdata not available: ", err)
-		return
-	}
-	lf := NewLogFile(fp, 0)
-	defer lf.Close()
-	for level, pa := range patterns {
-		for _, p := range pa {
-			lf.AddPattern(MonitoringResult(level), p)
+	for _, file := range testfiles {
+		fp, err := os.Open("testdata/" + file)
+		if err != nil {
+			t.Fatal("testdata not available: ", err)
+			return
 		}
-	}
-	res, counts, err := lf.Scan()
-	t.Logf("Parsing result: counts = %+v, offset = %d", counts, lf.Offset())
-	if err != nil {
-		t.Errorf("unexpected error %v", err)
-	} else if res != MonitorCritical {
-		t.Errorf("got res = %s, want res = %s", res, MonitorCritical)
-	} else {
-		t.Logf("got res = %v, want res = %v", res, MonitorCritical)
+		lf := NewLogFile(fp, 0)
+		defer lf.Close()
+		for level, pa := range patterns {
+			for _, p := range pa {
+				lf.AddPattern(MonitoringResult(level), p)
+			}
+		}
+		res, counts, err := lf.Scan()
+		t.Logf("Parsing result of %s: counts = %+v, offset = %d", file, counts, lf.Offset())
+		if err != nil {
+			t.Errorf("%s: unexpected error %v", file, err)
+		} else if res != MonitorCritical {
+			t.Errorf("%s:got res = %s, want res = %s", file, res, MonitorCritical)
+		} else {
+			t.Logf("%s:got res = %v, want res = %v", file, res, MonitorCritical)
+		}
 	}
 }
 
