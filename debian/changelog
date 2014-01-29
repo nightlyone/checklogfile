@@ -1,3 +1,21 @@
+checklogfile (0.2) saucy; urgency=low
+
+  [ Mathias Lafeldt ]
+  * Stop treating --help as error
+  * No longer output args
+  * Add nagios-plugins-common to Debian package dependencies
+  * Install check_logfiles command to /usr/lib/nagios/plugins
+  * Ensure our package replaces the package check-logfiles
+
+  [ Ingo Oeser ]
+  * Compatible to Go 1.1 and 1.2, not 1.0
+  * stripped go binaries are not supported
+
+  [ Knut Ahlers ]
+  * Switched to different hosting for go-nagios
+
+ -- Ingo Oeser <nightlyone@googlemail.com>  Wed, 29 Jan 2014 12:30:37 +0100
+
 checklogfile (0.1) unstable; urgency=low
 
   * Initial release.
