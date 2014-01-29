@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jessevdk/go-flags"
-	"github.com/laziac/go-nagios/nagios"
+	"github.com/nightlyone/go-nagios/nagios"
 	"github.com/nightlyone/checklogfile"
 	"io/ioutil"
 	"os"
