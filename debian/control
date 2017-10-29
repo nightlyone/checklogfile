@@ -2,7 +2,7 @@ Source: checklogfile
 Section: admin
 Priority: extra
 Maintainer: Ingo Oeser <nightlyone@googlemail.com>
-Uploaders: Mathias Lafeldt <mathias.lafeldt@gmail.com>, Mathias Lafeldt <mlafeldt@jimdo.com>, Ingo Oeser <ingo@jimdo.com>
+Uploaders: Ingo Oeser <nightlyone@googlemail.com>
 Build-Depends: debhelper (>= 8.0.0), golang-go, git-core, mercurial, rsync, ca-certificates
 Standards-Version: 3.9.2
 Homepage: https://github.com/nightlyone/checklogfile
