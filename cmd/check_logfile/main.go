@@ -3,13 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/jessevdk/go-flags"
-	"github.com/nightlyone/go-nagios/nagios"
-	"github.com/nightlyone/checklogfile"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/jessevdk/go-flags"
+	"github.com/nightlyone/checklogfile"
 )
 
 var opts struct {
@@ -33,13 +33,22 @@ func GetOffset() int64 {
 	return offset
 }
 
+func nagiosExit(state checklogfile.MonitoringResult, perfdata string, err error) {
+	errPerfString := perfdata
+	if err != nil {
+		errPerfString = "|" + err.Error()
+	}
+	fmt.Printf("%v%s\n", state, errPerfString)
+	os.Exit(int(state))
+}
+
 // Try to process passed log file
-func ProcessLog() (nagios.Status, error) {
+func ProcessLog() (checklogfile.MonitoringResult, string, error) {
 	var fp checklogfile.ReadSeekCloser
 
 	fp, err := os.Open(opts.Logfile)
 	if err != nil {
-		return nagios.UNKNOWN, err
+		return checklogfile.MonitorUnknown, "", err
 	}
 	ext := filepath.Ext(opts.Logfile)
 	fp = checklogfile.NewCompressorSeekWrapper(fp, ext)
@@ -52,25 +61,26 @@ func ProcessLog() (nagios.Status, error) {
 	}()
 
 	if err := lf.AddPatterns(checklogfile.MonitorOk, opts.OkPattern); err != nil {
-		return nagios.UNKNOWN, err
+		return checklogfile.MonitorUnknown, "", err
 	}
 	if err := lf.AddPatterns(checklogfile.MonitorCritical, opts.CriticalPattern); err != nil {
-		return nagios.UNKNOWN, err
+		return checklogfile.MonitorUnknown, "", err
 	}
 	if err := lf.AddPatterns(checklogfile.MonitorWarning, opts.WarningPattern); err != nil {
-		return nagios.UNKNOWN, err
+		return checklogfile.MonitorUnknown, "", err
 	}
 	if err := lf.AddPatterns(checklogfile.MonitorUnknown, opts.UnknownPattern); err != nil {
-		return nagios.UNKNOWN, err
+		return checklogfile.MonitorUnknown, "", err
 	}
 	res, count, err := lf.Scan()
 	lines := int64(0)
+	b := new(bytes.Buffer)
 	for i, v := range count {
 		lines += v
-		level := strings.ToLower(nagios.Status(i).String())
-		nagios.Perfdata(opts.Tag+"-"+level, float64(v), "", nil, nil)
+		level := strings.ToLower(checklogfile.MonitoringResult(i).String())
+		fmt.Fprintf(b, "|%v-%v=%v\n", opts.Tag, level, float64(v))
 	}
-	return nagios.Status(res), err
+	return res, b.String(), err
 }
 
 func main() {
@@ -81,13 +91,9 @@ func main() {
 		if e, ok := err.(*flags.Error); ok && e.Type == flags.ErrHelp {
 			return
 		} else {
-			nagios.Exit(nagios.UNKNOWN, err.Error())
+			nagiosExit(checklogfile.MonitorUnknown, "", err)
 		}
 	}
 
-	state, err := ProcessLog()
-	if err == nil {
-		nagios.Exit(state, "")
-	}
-	nagios.Exit(state, err.Error())
+	nagiosExit(ProcessLog())
 }
