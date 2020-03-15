@@ -57,7 +57,7 @@ func ProcessLog() (checklogfile.MonitoringResult, string, error) {
 	defer func() {
 		offset := lf.Offset()
 		s := fmt.Sprintf("%d", offset)
-		ioutil.WriteFile(opts.OffsetFile, []byte(s), 0600)
+		_ = ioutil.WriteFile(opts.OffsetFile, []byte(s), 0600) // FIXME: Check this error!
 	}()
 
 	if err := lf.AddPatterns(checklogfile.MonitorOk, opts.OkPattern); err != nil {
@@ -90,9 +90,8 @@ func main() {
 		// --help is not an error
 		if e, ok := err.(*flags.Error); ok && e.Type == flags.ErrHelp {
 			return
-		} else {
-			nagiosExit(checklogfile.MonitorUnknown, "", err)
 		}
+		nagiosExit(checklogfile.MonitorUnknown, "", err)
 	}
 
 	nagiosExit(ProcessLog())

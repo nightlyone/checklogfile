@@ -58,11 +58,12 @@ func NewLogFile(r ReadSeekCloser, start int64) *Logfile {
 			panic(err)
 		}
 	}
+
 	return l
 }
 
 // Add a regexp pattern to trigger monitoring alert level.
-// Logfile lines are matched in order of apperance,
+// Logfile lines are matched in order of appearance,
 // but which pattern is applied first is not specified.
 func (l *Logfile) AddPattern(level MonitoringResult, pattern string) error {
 	if level < 0 || level > MonitorCount {
@@ -77,7 +78,7 @@ func (l *Logfile) AddPattern(level MonitoringResult, pattern string) error {
 }
 
 // Add list of a regexp patterns to trigger monitoring alert level.
-// Logfile lines are matched in order of apperance,
+// Logfile lines are matched in order of appearance,
 // but which patterns are applied first is not specified.
 func (l *Logfile) AddPatterns(level MonitoringResult, patterns []string) error {
 	for _, p := range patterns {
@@ -99,18 +100,19 @@ func (l *Logfile) Scan() (res MonitoringResult, counts [MonitorCount]int64, err 
 	var line []byte
 	var matched, read int64
 	res = MonitorUnknown
+	// Note: Cannot use bufio.Scanner since we need precise control of the stream position.
 	for line, err = l.buffer.ReadBytes('\n'); err == nil; line, err = l.buffer.ReadBytes('\n') {
 		for i := range l.patterns {
 			for _, pattern := range l.patterns[i] {
 				if pattern.Match(line) {
-					matched += 1
-					counts[i] += 1
+					matched++
+					counts[i]++
 					res = MonitoringResult(i)
 					break
 				}
 			}
 		}
-		read += 1
+		read++
 	}
 	if err == io.EOF {
 		err = nil
@@ -125,7 +127,7 @@ func (l *Logfile) Scan() (res MonitoringResult, counts [MonitorCount]int64, err 
 		offset -= int64(l.buffer.Buffered())
 		l.offset = offset
 	}
-	return
+	return res, counts, err
 }
 
 // Returns current logfile offset. We will start here for the next Scan.

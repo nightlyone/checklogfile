@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 )
 
-var ErrStreamSeek = errors.New("Cannot seek to this position in stream")
+var ErrStreamSeek = errors.New("cannot seek to this position in stream")
 
 // We can skip IO and rewind in streams and thus support the io.Seeker interface
 type CompressorSeekWrapper struct {
@@ -52,11 +52,11 @@ func (c *CompressorSeekWrapper) Seek(offset int64, whence int) (ret int64, err e
 
 	var newoffset int64
 	switch whence {
-	case 0:
+	case io.SeekStart:
 		newoffset = offset
-	case 1:
+	case io.SeekCurrent:
 		newoffset = c.offset + offset
-	case 2:
+	case io.SeekEnd:
 		return c.offset, ErrStreamSeek
 	}
 	if newoffset != 0 && newoffset < c.offset {
@@ -73,16 +73,16 @@ func (c *CompressorSeekWrapper) Seek(offset int64, whence int) (ret int64, err e
 				return 0, err
 			}
 		}
-		if _, err := c.f.Seek(0, 0); err != nil {
+		if _, err := c.f.Seek(0, io.SeekStart); err != nil {
 			return 0, err
 		}
-		if comp, err := getCompressor(c.compression, c.f); err != nil {
+		comp, err := getCompressor(c.compression, c.f)
+		if err != nil {
 			return 0, err
-		} else {
-			c.compressor = comp
-			c.offset = 0
-			return 0, nil
 		}
+		c.compressor = comp
+		c.offset = 0
+		return 0, nil
 	}
 	// seek forward means read and skip
 	_, err = io.CopyN(ioutil.Discard, c, newoffset-c.offset)

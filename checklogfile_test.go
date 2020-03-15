@@ -8,40 +8,41 @@ import (
 )
 
 var patterns = [MonitorCount][]string{
-	MonitorCritical: []string{`^\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2}\,\d{3}\ ERROR\ ((error message:.*)|)`},
-	MonitorWarning: []string{
+	MonitorCritical: {`^\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2}\,\d{3}\ ERROR\ ((error message:.*)|)`},
+	MonitorWarning: {
 		`^\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2}\,\d{3}\ INFO Packages that are upgraded:\ \$`,
 		`^\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2}\,\d{3}\ WARNING package '.*' upgradable but fails to be marked for upgrade`,
 	},
-	MonitorOk: []string{`^\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2}\,\d{3}\ INFO No packages found that can be upgraded unattended\$`},
-}
-
-var testfiles = []string{
-	"unattended-upgrades.log",
-	"unattended-upgrades.log.1",
+	MonitorOk: {`^\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2}\,\d{3}\ INFO No packages found that can be upgraded unattended\$`},
 }
 
 func TestUnattendedUpdate(t *testing.T) {
+	testfiles := []string{
+		"unattended-upgrades.log",
+		"unattended-upgrades.log.1",
+	}
 	for _, file := range testfiles {
 		fp, err := os.Open("testdata/" + file)
 		if err != nil {
-			t.Fatal("testdata not available: ", err)
-			return
+			t.Fatalf("testdata not available: %v", err)
 		}
 		lf := NewLogFile(fp, 0)
 		defer lf.Close()
 		for level, pa := range patterns {
 			for _, p := range pa {
-				lf.AddPattern(MonitoringResult(level), p)
+				if err := lf.AddPattern(MonitoringResult(level), p); err != nil {
+					t.Fatalf("Cannot AddPattern(%s, %#q): %v", MonitoringResult(level), p, err)
+				}
 			}
 		}
 		res, counts, err := lf.Scan()
 		t.Logf("Parsing result of %s: counts = %+v, offset = %d", file, counts, lf.Offset())
-		if err != nil {
+		switch {
+		case err != nil:
 			t.Errorf("%s: unexpected error %v", file, err)
-		} else if res != MonitorCritical {
+		case res != MonitorCritical:
 			t.Errorf("%s:got res = %s, want res = %s", file, res, MonitorCritical)
-		} else {
+		default:
 			t.Logf("%s:got res = %v, want res = %v", file, res, MonitorCritical)
 		}
 	}
@@ -59,11 +60,11 @@ func BenchmarkUnattendedUpdate(b *testing.B) {
 		lf := NewLogFile(NewReadSeeker(contents), 0)
 		for level, pa := range patterns {
 			for _, p := range pa {
-				lf.AddPattern(MonitoringResult(level), p)
+				_ = lf.AddPattern(MonitoringResult(level), p) // error checked in test already
 			}
 		}
 		b.StartTimer()
-		_, _, err = lf.Scan()
+		_, _, err := lf.Scan() // error checked in test already
 		b.StopTimer()
 		if err != nil {
 			b.Fatal("invalid testdata: ", err)
